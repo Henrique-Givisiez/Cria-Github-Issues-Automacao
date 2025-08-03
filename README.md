@@ -51,7 +51,7 @@ Instalação das dependências:
 
 ```bash
 pip install -r requirements.txt
-
+```
 
 ## Uso
 
