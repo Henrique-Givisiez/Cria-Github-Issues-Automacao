@@ -1,4 +1,3 @@
-from wsgiref import headers
 from dotenv import load_dotenv
 import requests
 import os
