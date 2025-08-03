@@ -5,26 +5,27 @@ from dotenv import load_dotenv
 # Carrega variáveis do .env
 load_dotenv()
 token = os.environ.get("GITHUB_TOKEN")
+link_repositorio = os.environ.get("LINK_REPO")
+
 # Cabecalho de autorizacao
 headers = {
     "Authorization": f"Bearer {token}",
     "Accept": "application/vnd.github+json",
 }
 
+
 def get_issues_ids() -> list[int]:
-    link_repositorio = os.environ.get("LINK_REPO")
-
-
     url = f"https://api.github.com/repos/{link_repositorio}/issues"
     response = requests.get(url=url, headers=headers)
     ids = []
     for item in response.json():
-        id = item["node_id"]
-        ids.append(id)
+        if "pull_request" not in item:  # evita PRs
+            id = item["node_id"]
+            ids.append(id)
     return ids
 
 
-def update_issue(issue_node_id):
+def update_issue(issue_node_id, project_id):
     graphql_url = "https://api.github.com/graphql"
     query = """
     mutation($projectId: ID!, $contentId: ID!) {
@@ -44,7 +45,21 @@ def update_issue(issue_node_id):
     return r.json()
 
 
-issues_ids = get_issues_ids()
-for id in issues_ids:
-    print(update_issue(id))
-
+def get_project_node_id(user: str):
+    graphql_url = "https://api.github.com/graphql"
+    query = """
+    query {
+      user(login: "%s") {
+        projectsV2(first: 10) {
+          nodes {
+            id
+            title
+            number
+          }
+        }
+      }
+    }
+    """ % user
+    r = requests.post(graphql_url, headers=headers, json={"query": query})
+    r.raise_for_status()
+    return r.json()

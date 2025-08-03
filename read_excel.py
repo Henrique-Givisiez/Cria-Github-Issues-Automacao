@@ -9,14 +9,16 @@ def read_excel(path: str) -> list[dict]:
 
     # Le as linhas
     for row in sheet.iter_rows(min_row=2, values_only=True):
-        tag_etapa, titulo, esforco = row
-        esforco = esforco[0]
-        user_isssue = {
-            "titulo": titulo,
-            "etapa": tag_etapa,
-            "esforco": esforco
-        }
-        dados.append(user_isssue)
-
+        try:
+            tag_etapa, titulo, esforco = row
+            esforco = esforco[0]
+            user_isssue = {
+                "titulo": titulo,
+                "etapa": tag_etapa,
+                "esforco": esforco
+            }
+            dados.append(user_isssue)
+        except TypeError:
+            continue
     return dados
 
