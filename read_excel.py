@@ -10,6 +10,7 @@ def read_excel(path: str) -> list[dict]:
     # Le as linhas
     for row in sheet.iter_rows(min_row=2, values_only=True):
         try:
+            # Desempacota os valores da linha
             tag_etapa, titulo, esforco, sprint = row
             esforco = esforco[0]
             user_isssue = {

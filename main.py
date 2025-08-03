@@ -2,14 +2,16 @@ from helper import GitHubIssueAutomation
 from read_excel import read_excel
 
 if __name__ == "__main__":
-    path = input("Digite o caminho da planilha\n")
+    path = input("Digite o caminho absoluto da planilha\n")
     user = input("Digite o nome do usuario GitHub\n")
     project = input("Digite o nome do projeto\n")
     if not path or not user or not project:
         print("Todos os campos são obrigatórios.")
         exit()
 
+    # Cria uma instância da automação do GitHub
     automation = GitHubIssueAutomation(username=user, project_name=project)
+    # Lê os dados da planilha
     issues = read_excel(path=path)
 
     estimate_dict = []

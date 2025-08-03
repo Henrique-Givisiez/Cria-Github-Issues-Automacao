@@ -5,34 +5,36 @@ import os
 class GitHubIssueAutomation:
     def __init__(self, username: str, project_name: str):
         self.username = username
-        self.get_env_variables()
-        self.project_id = self.get_project_id(project_name)
+        self.get_env_variables()  # Carrega variáveis do ambiente
+        self.project_id = self.get_project_id(project_name)  # Busca o ID do projeto
 
     def get_env_variables(self):
-        load_dotenv()
+        load_dotenv()  # Carrega variáveis do arquivo .env
         self.token = os.environ.get("GITHUB_TOKEN")
         self.link_repo = os.environ.get("LINK_REPO")
         if not self.token or not self.link_repo:
-            raise ValueError("GITHUB_TOKEN and LINK_REPO must be set in the .env file")
+            raise ValueError("GITHUB_TOKEN e LINK_REPO devem ser definidos no arquivo .env")
         
         self.headers = {
-            "Authorization": f"Bearer {self.token}",
+            "Authorization": f"Bearer {self.token}",  # Autenticação
             "Accept": "application/vnd.github+json",
         }
 
     def issue_exists(self, titulo: str) -> bool:
+        # Verifica se já existe uma issue com o título informado
         url = f"https://api.github.com/repos/{self.link_repo}/issues?state=all&per_page=100"
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
 
         issues = response.json()
         for issue in issues:
-            if issue.get("title", "").strip().lower() == titulo.strip().lower():
+            if issue.get("title", "").strip().lower() == titulo.strip().lower():  # Verifica se a issue já existe
                 return True
         return False
     
 
     def create_issue(self, title, labels):
+        # Cria uma nova issue se não existir duplicada
         if self.issue_exists(title):
             print(f"Issue duplicada não criada: {title}")
             return
@@ -51,6 +53,7 @@ class GitHubIssueAutomation:
             print(response.json())
 
     def get_project_id(self, project_name: str):
+        # Busca o ID do projeto pelo nome usando GraphQL
         graphql_url = "https://api.github.com/graphql"
         query = """
         query {
@@ -73,6 +76,7 @@ class GitHubIssueAutomation:
         return
     
     def get_issue_id(self, title: str) -> list[int]:
+        # Busca o node_id da issue pelo título
         url = f"https://api.github.com/repos/{self.link_repo}/issues"
         response = requests.get(url=url, headers=self.headers)
         for item in response.json():
@@ -83,6 +87,7 @@ class GitHubIssueAutomation:
         return None
 
     def assign_issue_to_project(self, item_id):
+        # Adiciona uma issue ao projeto via GraphQL
         graphql_url = "https://api.github.com/graphql"
         query = """
         mutation($projectId: ID!, $contentId: ID!) {
@@ -107,6 +112,7 @@ class GitHubIssueAutomation:
             print(response.status_code)
 
     def update_item_status(self, item_id):
+        # Atualiza o campo de status de um item do projeto
         query = """
         mutation UpdateStatusField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
             updateProjectV2ItemFieldValue(
@@ -144,6 +150,7 @@ class GitHubIssueAutomation:
         print(f"Status do item {item_id} atualizado.")
 
     def get_fields(self):
+        # Retorna os campos do projeto
         query = """
         query ($projectId: ID!) {
         node(id: $projectId) {
@@ -192,6 +199,7 @@ class GitHubIssueAutomation:
         return fields_return
 
     def get_items_project_ids(self):
+        # Retorna IDs dos itens do projeto sem status definido
         query = """
         query ($projectId: ID!) {
         node(id: $projectId) {
@@ -251,6 +259,7 @@ class GitHubIssueAutomation:
         return ids        
 
     def get_item_ids_por_status(self, status_desejado: str):
+        # Retorna IDs dos itens do projeto com status desejado
         query = """
         query ($projectId: ID!) {
         node(id: $projectId) {
@@ -308,6 +317,7 @@ class GitHubIssueAutomation:
         return ids
 
     def update_estimate_field(self, item_id, field_id, value):
+        # Atualiza campo de estimativa (número) do item do projeto
         query = """
         mutation UpdateNumberField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $number: Float!) {
           updateProjectV2ItemFieldValue(
@@ -339,6 +349,7 @@ class GitHubIssueAutomation:
             print(response.status_code)
 
     def update_sprint_field(self, item_id, field_id, iteration_id):
+        # Atualiza campo de sprint (iteração) do item do projeto
         query = """
         mutation UpdateSprintField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $iterationId: String!) {
         updateProjectV2ItemFieldValue(
@@ -373,6 +384,7 @@ class GitHubIssueAutomation:
 
 
     def get_sprint_options(self, field_id: str):
+        # Retorna opções de sprint (iterações) disponíveis
         query = """
         query ($id: ID!) {
         node(id: $id) {
