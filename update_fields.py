@@ -195,14 +195,98 @@ def update_field(item_id, field_id, project_id, estimate):
     r.raise_for_status()
     print(f"Campo 'Estimate' atualizado para {estimate} no item {item_id}")
 
+def listar_campos_do_projeto(project_id):
+    query = """
+    query ($projectId: ID!) {
+      node(id: $projectId) {
+        ... on ProjectV2 {
+          fields(first: 50) {
+            nodes {
+              ... on ProjectV2Field {
+                id
+                name
+                dataType
+              }
+              ... on ProjectV2SingleSelectField {
+                id
+                name
+                dataType
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    variables = {"projectId": project_id}
 
-field_id = get_fields_ids("Henrique-Givisiez", "Projeto Comida Portuguesa")
+    response = requests.post(
+        "https://api.github.com/graphql",
+        headers=headers,
+        json={"query": query, "variables": variables}
+    )
+
+    response.raise_for_status()
+    fields = response.json()["data"]["node"]["fields"]["nodes"]
+
+    print("📋 Campos encontrados no projeto:")
+    for f in fields:
+        print(f"- {f['name']} ({f['dataType']}): {f['id']}")
+
+    return fields
+
+
+def atualizar_status_item(project_id, item_id):
+    field_id = "PVTSSF_lAHOCK-Bws4A-fNUzgx4DCQ"
+    option_id = "f75ad846"
+    query = """
+    mutation UpdateStatusField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+      updateProjectV2ItemFieldValue(
+        input: {
+          projectId: $projectId
+          itemId: $itemId
+          fieldId: $fieldId
+          value: {
+            singleSelectOptionId: $optionId
+          }
+        }
+      ) {
+        projectV2Item {
+          id
+        }
+      }
+    }
+    """
+
+    variables = {
+        "projectId": project_id,
+        "itemId": item_id,
+        "fieldId": field_id,
+        "optionId": option_id,
+    }
+
+    response = requests.post(
+        "https://api.github.com/graphql",
+        headers=headers,
+        json={"query": query, "variables": variables}
+    )
+
+    response.raise_for_status()
+    print(f"✅ Status do item {item_id} atualizado para optionId {option_id}")
+
+
 project_id = get_project_node_id("Henrique-Givisiez", "Projeto Comida Portuguesa")
-items_ids = get_items(project_id)
 
-issues = read_excel(path="Issues por Sprint.xlsx")
-count = 0
-for issue in issues:
-    estimate = issue["esforco"]
-    update_field(items_ids[count], field_id, project_id, float(estimate))
-    count+=1
+items_ids = get_items(project_id)
+for id in items_ids:
+    atualizar_status_item(project_id, id)
+
+
+# field_id = get_fields_ids("Henrique-Givisiez", "Projeto Comida Portuguesa")
+#
+# issues = read_excel(path="Issues por Sprint.xlsx")
+# count = 0
+# for issue in issues:
+#     estimate = issue["esforco"]
+#     update_field(items_ids[count], field_id, project_id, float(estimate))
+#     count+=1
