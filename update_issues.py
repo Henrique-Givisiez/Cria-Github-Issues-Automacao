@@ -45,7 +45,7 @@ def update_issue(issue_node_id, project_id):
     return r.json()
 
 
-def get_project_node_id(user: str):
+def get_project_node_id(user: str, title: str):
     graphql_url = "https://api.github.com/graphql"
     query = """
     query {
@@ -62,4 +62,7 @@ def get_project_node_id(user: str):
     """ % user
     r = requests.post(graphql_url, headers=headers, json={"query": query})
     r.raise_for_status()
-    return r.json()
+    for project in r.json()['data']['user']['projectsV2']['nodes']:
+        if title.lower() in [str(i).lower() for i in project.values()]:
+            return project['id']
+    return
