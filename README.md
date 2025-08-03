@@ -46,6 +46,7 @@ Foi criado com o intuito de auxiliar na criação de issues para um projeto pess
 - Python 3.8+
 - Biblioteca `requests`
 - Biblioteca `python-dotenv`
+- Biblioteca `openpyxl`
 
 Instalação das dependências:
 
