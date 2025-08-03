@@ -3,6 +3,7 @@
 Este projeto automatiza a criação, atualização e gerenciamento de **issues** e **campos personalizados** dentro de um **GitHub Project v2** (beta). A automação é feita via **GraphQL API**.
 
 Foi criado com o intuito de auxiliar na criação de issues para um projeto pessoal, mas pode ser adaptado com a ajuda dos métodos da classe `helper.py`. A leitura das issues é feita a partir de um arquivo Excel com as colunas Etapa, Tarefa, Esforco, Sprint. 
+
 ---
 
 ## Funcionalidades
